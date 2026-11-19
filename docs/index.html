@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BananaInterop</title>
+<meta name="description" content="Type /image in Claude, get a Gemini Nano Banana PNG in Downloads\Nano. Local, dependency-free middleware.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbfaf5; --surface: #ffffff; --ink: #1d1c17; --muted: #615f55; --line: #e7e3d4;
+    --accent: #f5c518; --accent-ink: #3b2f00; --green: #2f9e44; --code-bg: #f3f0e3;
+    --shadow: 0 1px 2px rgba(29,28,23,.06), 0 8px 24px rgba(29,28,23,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12120f; --surface: #1b1a16; --ink: #f2efe3; --muted: #aaa694; --line: #2e2c25;
+      --accent: #ffd43b; --accent-ink: #241c00; --green: #69db7c; --code-bg: #23221c;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12120f; --surface: #1b1a16; --ink: #f2efe3; --muted: #aaa694; --line: #2e2c25;
+    --accent: #ffd43b; --accent-ink: #241c00; --green: #69db7c; --code-bg: #23221c;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 Inter, system-ui, sans-serif; }
+  a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  header.top { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; }
+  .brand { font: 700 18px/1 "Space Grotesk", sans-serif; letter-spacing: -.01em; display: flex; gap: 10px; align-items: center; }
+  .brand i { width: 22px; height: 22px; border-radius: 6px; background: var(--accent); display: inline-block; transform: rotate(-12deg); }
+  nav a { margin-left: 18px; color: var(--muted); text-decoration: none; font-size: 15px; }
+  nav a:hover { color: var(--ink); }
+  .hero > *, .card, .step, ol.install li, .gallery > * { min-width: 0; }
+  .hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; align-items: center; padding: 32px 0 56px; }
+  h1 { font: 700 clamp(36px, 6vw, 60px)/1.02 "Space Grotesk", sans-serif; letter-spacing: -.03em; margin: 0 0 18px; }
+  h1 mark { background: linear-gradient(transparent 58%, var(--accent) 58%); color: inherit; padding: 0 2px; }
+  .lede { font-size: 19px; color: var(--muted); margin: 0 0 26px; max-width: 34em; }
+  .cmd { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+         padding: 14px 16px; box-shadow: var(--shadow); font: 15px/1.4 "JetBrains Mono", monospace; overflow-x: auto; }
+  .cmd b { color: var(--green); font-weight: 500; white-space: nowrap; }
+  .cmd span { white-space: nowrap; }
+  .hero figure { margin: 0; }
+  .hero img { width: 100%; height: auto; display: block; border-radius: 18px; box-shadow: var(--shadow); aspect-ratio: 1376 / 768; object-fit: cover; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 10px; font-family: "JetBrains Mono", monospace; overflow-wrap: anywhere; }
+  section { padding: 48px 0; border-top: 1px solid var(--line); }
+  h2 { font: 700 30px/1.15 "Space Grotesk", sans-serif; letter-spacing: -.02em; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; counter-reset: s; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; position: relative; }
+  .step::before { counter-increment: s; content: counter(s); position: absolute; top: 14px; right: 16px; font: 700 14px "Space Grotesk"; color: var(--muted); }
+  .step h3 { margin: 0 0 6px; font: 700 17px "Space Grotesk", sans-serif; }
+  .step p { margin: 0; font-size: 14.5px; color: var(--muted); }
+  .step code { font-size: 13px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .card h3 { margin: 0 0 6px; font: 700 18px "Space Grotesk", sans-serif; }
+  .card p { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+  code, pre { font-family: "JetBrains Mono", monospace; }
+  code { background: var(--code-bg); padding: 1px 6px; border-radius: 6px; font-size: .9em; }
+  pre { background: var(--code-bg); border-radius: 12px; padding: 14px 16px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; margin: 0; }
+  p code, td code { overflow-wrap: anywhere; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: center; }
+  .gallery img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 14px; display: block; box-shadow: var(--shadow); }
+  .gallery .wide img { aspect-ratio: 16/9; }
+  ol.install { padding-left: 22px; margin: 0; display: grid; gap: 18px; }
+  ol.install li::marker { font-weight: 700; color: var(--muted); }
+  ol.install p { margin: 0 0 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+  .pill { display: inline-block; font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); margin-bottom: 18px; }
+  footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; gap: 28px; padding-top: 12px; }
+    .flow { grid-template-columns: 1fr 1fr; }
+    .grid3, .gallery { grid-template-columns: 1fr; }
+    nav a:not(.gh) { display: none; }
+  }
+  @media (max-width: 480px) { .flow { grid-template-columns: 1fr; } .lede { font-size: 17px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><i aria-hidden="true"></i>BananaInterop</div>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#install">Install</a>
+      <a href="#settings">Settings</a>
+      <a class="gh" href="https://github.com/GunGreenEyes/BananaInterop">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <span class="pill">Claude × Gemini Nano Banana</span>
+      <h1>Type <mark>/image</mark>.<br>Get a PNG.</h1>
+      <p class="lede">A tiny local middleware that lets Claude Chat, Cowork and Claude Code generate images with Google's Nano Banana models and drop them straight into <code>Downloads\Nano</code>.</p>
+      <div class="cmd" aria-label="example command"><b>/image</b><span>a neon green banana spaceship docking at a station, 16:9</span></div>
+    </div>
+    <figure>
+      <img src="hero.jpg" alt="A glowing neon-green banana-shaped spaceship docking at a ring-shaped space station above Earth" width="1376" height="768">
+      <figcaption>Downloads\Nano\image_…_a-neon-green-banana-shaped-spaceship.png</figcaption>
+    </figure>
+  </div>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <p class="sub">Claude never talks to Google directly. It talks to the middleware on your PC, which holds your key.</p>
+    <div class="flow">
+      <div class="step"><h3>You ask</h3><p><code>/image</code> in Claude Code, or the <code>image</code> MCP tool in Chat and Cowork.</p></div>
+      <div class="step"><h3>Middleware</h3><p><code>server.js</code> on <code>127.0.0.1:7861</code> forwards the prompt to Gemini's streaming API.</p></div>
+      <div class="step"><h3>Stream back</h3><p>The image streams back as NDJSON chunks and is reassembled, converted to PNG if needed.</p></div>
+      <div class="step"><h3>Saved</h3><p>Written to your <em>real</em> Downloads folder (registry lookup), in <code>Nano\</code>.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Works where you do</h2>
+    <p class="sub">One middleware, three front doors.</p>
+    <div class="grid3">
+      <div class="card"><h3>Claude Code</h3><p>A user skill adds <code>/image</code> to the CLI and the desktop Code tab.</p><pre><code>/image a fox in a library, 2K</code></pre></div>
+      <div class="card"><h3>Chat &amp; Cowork</h3><p>An MCP server exposes an <code>image</code> tool and prompt. Ask for a picture and it shows up inline.</p><pre><code>"draw me a banana balloon"</code></pre></div>
+      <div class="card"><h3>Command line</h3><p>Script it, batch it, pipe the saved path anywhere.</p><pre><code>node image.js --ar 9:16 "poster"</code></pre></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Made with it</h2>
+    <p class="sub">Straight out of <code>Downloads\Nano</code>, first try.</p>
+    <div class="gallery">
+      <img src="sunglasses.jpg" alt="A ripe banana wearing round sunglasses on a striped beach towel" loading="lazy" width="900" height="900">
+      <img src="astronaut.jpg" alt="A tiny banana astronaut planting a flag on the moon" loading="lazy" width="900" height="900">
+      <div class="wide"><img src="balloon.jpg" alt="A banana-shaped hot air balloon over green hills at sunrise" loading="lazy" width="900" height="506"></div>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Install</h2>
+    <p class="sub">Windows, Node 18+, no npm packages.</p>
+    <ol class="install">
+      <li><p>Clone it.</p><pre><code>git clone https://github.com/GunGreenEyes/BananaInterop.git F:\Projects\GunGreenEyes\BananaInterop</code></pre></li>
+      <li><p>Put a Gemini API key from <a href="https://aistudio.google.com/apikey">AI Studio</a> in <code>settings.json</code> (created on first run). Image models need billing on the key's project.</p></li>
+      <li><p>For Chat and Cowork, register the MCP server in <code>%APPDATA%\Claude\claude_desktop_config.json</code>, then quit Claude from the tray and reopen it.</p>
+<pre><code>{
+  "mcpServers": {
+    "banana-interop": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": ["F:\\Projects\\GunGreenEyes\\BananaInterop\\mcp.js"]
+    }
+  }
+}</code></pre></li>
+      <li><p>For Claude Code, copy <code>skill\SKILL.md</code> to <code>~\.claude\skills\image\SKILL.md</code>.</p></li>
+    </ol>
+  </section>
+
+  <section id="settings">
+    <h2>Settings</h2>
+    <p class="sub"><code>settings.json</code> is re-read on every request, so edits apply to the next image.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Key</th><th>Default</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>model</code></td><td><code>gemini-3.1-flash-image</code></td><td>Nano Banana 2. <code>gemini-3-pro-image</code> for best quality and text.</td></tr>
+          <tr><td><code>aspectRatio</code></td><td><code>1:1</code></td><td>1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9</td></tr>
+          <tr><td><code>imageSize</code></td><td><code>1K</code></td><td>1K, 2K or 4K</td></tr>
+          <tr><td><code>outputDir</code></td><td><em>Downloads</em></td><td>Empty means your real Downloads folder.</td></tr>
+          <tr><td><code>outputSubfolder</code></td><td><code>Nano</code></td><td>Empty saves directly into <code>outputDir</code>.</td></tr>
+          <tr><td><code>port</code></td><td><code>7861</code></td><td>Middleware listens on 127.0.0.1 only.</td></tr>
+          <tr><td><code>autoStartServer</code></td><td><code>true</code></td><td>Clients start the middleware if it isn't running.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    BananaInterop · MIT · <a href="https://github.com/GunGreenEyes/BananaInterop">github.com/GunGreenEyes/BananaInterop</a> · Not affiliated with Google or Anthropic.
+  </footer>
+</div>
+</body>
+</html>

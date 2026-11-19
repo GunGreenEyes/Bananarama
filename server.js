@@ -16,7 +16,6 @@
 const http = require('http');
 const settingsLib = require('./lib/settings');
 
-const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 const CHUNK = 64 * 1024; // base64 chars per image_chunk event
 const MAX_BODY = 60 * 1024 * 1024;
 
@@ -65,7 +64,7 @@ async function handleImagine(req, res) {
 
   const prompt = (input.prompt || '').trim();
   if (!prompt) { send({ type: 'error', message: 'prompt is required' }); return res.end(); }
-  if (!s.apiKey) { send({ type: 'error', message: `no API key: set "apiKey" in ${settingsLib.SETTINGS_PATH} or env GEMINI_API_KEY` }); return res.end(); }
+  if (!s.apiKey) { send({ type: 'error', message: `no API key: set "apiKey" in ${settingsLib.settingsPath()} or env GEMINI_API_KEY` }); return res.end(); }
 
   const model = input.model || s.model;
   const imageConfig = {};
@@ -87,7 +86,7 @@ async function handleImagine(req, res) {
 
   send({ type: 'status', message: `requesting ${model} (${ar || 'default'}, ${imageConfig.imageSize || 'default'})` });
   try {
-    const r = await fetch(`${API}/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
+    const r = await fetch(`${s.apiBase.replace(/\/$/, '')}/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': s.apiKey },
       body: JSON.stringify(body),
@@ -132,9 +131,8 @@ async function handleImagine(req, res) {
   }
 }
 
-function start() {
-  const s = settingsLib.load();
-  const server = http.createServer((req, res) => {
+function createServer() {
+  return http.createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ ok: true, name: 'BananaInterop', pid: process.pid }));
@@ -145,9 +143,15 @@ function start() {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'not found' }));
   });
+}
+
+function start() {
+  const s = settingsLib.load();
+  const server = createServer();
   server.listen(s.port, s.host, () => console.log(`BananaInterop listening on http://${s.host}:${s.port}`));
   server.on('error', e => { console.error(e.message); process.exit(1); });
+  return server;
 }
 
 if (require.main === module) start();
-module.exports = { start };
+module.exports = { start, createServer, sseEvents };

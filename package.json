@@ -1,0 +1,14 @@
+{
+  "name": "banana-interop",
+  "version": "1.0.0",
+  "description": "Local middleware between Claude and Google Gemini Nano Banana image models; saves PNGs to Downloads\\Nano.",
+  "license": "MIT",
+  "private": true,
+  "bin": { "banana-image": "image.js" },
+  "scripts": {
+    "start": "node server.js",
+    "mcp": "node mcp.js",
+    "test": "node --test test/unit.test.js test/integration.test.js"
+  },
+  "engines": { "node": ">=18" }
+}
