@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bananarama image</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1d1d1b; --muted: #6b6b66; --bg: transparent; --edge: rgba(0,0,0,.12); }
+  @media (prefers-color-scheme: dark) { :root { --fg: #ecebe6; --muted: #a3a29c; --edge: rgba(255,255,255,.14); } }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { padding: 4px 0; }
+  img { display: block; max-width: 100%; max-height: 640px; border-radius: 10px; border: 1px solid var(--edge); }
+  .cap { margin-top: 6px; color: var(--muted); word-break: break-all; }
+  .wait { color: var(--muted); padding: 12px 0; }
+  .err { color: #c0392b; padding: 12px 0; }
+</style>
+</head>
+<body>
+<main id="root"><div class="wait">🍌 Making your image…</div></main>
+<script>
+// MCP Apps view: shows the image the "image" tool returned, right in the chat.
+// Talks to the host with JSON-RPC over postMessage (ui/initialize, then the host sends the tool result).
+(function () {
+  var root = document.getElementById('root');
+  var nextId = 1;
+  function send(msg) { window.parent.postMessage(Object.assign({ jsonrpc: '2.0' }, msg), '*'); }
+  function notifySize() {
+    send({ method: 'ui/notifications/size-changed', params: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight } });
+  }
+  function text(s) { var d = document.createElement('div'); d.textContent = s; return d; }
+
+  function show(result) {
+    var content = (result && result.content) || [];
+    var img = content.filter(function (c) { return c.type === 'image' && c.data; })[0];
+    var note = content.filter(function (c) { return c.type === 'text'; }).map(function (c) { return c.text; }).join('\n');
+    root.innerHTML = '';
+    if (result && result.isError) { var e = text(note || 'Image generation failed'); e.className = 'err'; root.appendChild(e); notifySize(); return; }
+    if (img) {
+      var el = document.createElement('img');
+      el.alt = 'Generated image';
+      el.onload = notifySize;
+      el.src = 'data:' + (img.mimeType || 'image/png') + ';base64,' + img.data;
+      root.appendChild(el);
+    }
+    var file = result && result.structuredContent && result.structuredContent.file;
+    var cap = text(file ? 'Saved: ' + file : note);
+    cap.className = 'cap';
+    root.appendChild(cap);
+    notifySize();
+  }
+
+  window.addEventListener('message', function (ev) {
+    var m = ev.data;
+    if (!m || m.jsonrpc !== '2.0') return;
+    if (m.method === 'ui/notifications/tool-result') show(m.params);
+    else if (m.method === 'ui/notifications/tool-cancelled') { root.innerHTML = ''; root.appendChild(text('Cancelled')).className = 'wait'; notifySize(); }
+    else if (m.method === 'ui/resource-teardown' && m.id !== undefined) send({ id: m.id, result: {} });
+    else if (m.id !== undefined && m.method) send({ id: m.id, error: { code: -32601, message: 'method not found' } });
+  });
+
+  send({ id: nextId++, method: 'ui/initialize', params: {
+    protocolVersion: '2026-01-26',
+    appInfo: { name: 'bananarama-image', version: '1.0.0' },
+    appCapabilities: {}
+  } });
+  // the host answers ui/initialize; tell it we're ready either way
+  window.addEventListener('message', function once(ev) {
+    if (ev.data && ev.data.jsonrpc === '2.0' && ev.data.id === 1 && !ev.data.method) {
+      window.removeEventListener('message', once);
+      send({ method: 'ui/notifications/initialized', params: {} });
+      notifySize();
+    }
+  });
+})();
+</script>
+</body>
+</html>

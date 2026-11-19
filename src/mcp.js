@@ -14,11 +14,18 @@ const pkg = require('../package.json');
 const PROTOCOLS = ['2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05'];
 const INLINE_LIMIT = 900 * 1024; // larger PNGs are returned by path only
 
+// MCP Apps: hosts that support it (Claude Desktop chat, Cowork, claude.ai) render this page
+// inline in the conversation with the tool result, so the picture appears where it was asked for.
+const UI_URI = 'ui://bananarama/image.html';
+const UI_MIME = 'text/html;profile=mcp-app';
+const UI_FILE = path.join(__dirname, 'ui', 'image.html');
+
 const TOOL = {
   name: 'image',
   title: 'Generate image (Nano Banana)',
+  _meta: { ui: { resourceUri: UI_URI }, 'ui/resourceUri': UI_URI },
   description: 'Generate an image from a text description with Google Gemini Nano Banana via the local Bananarama middleware. ' +
-    'Saves a PNG to the user\'s Downloads\\Nano folder and returns the saved path (and the image when small enough). ' +
+    'Saves a PNG to the user\'s Downloads\\Nano folder and returns the saved path and the image, and shows the image in the conversation. ' +
     'Pass referenceImages (local file paths) to edit an image or use it as a reference.',
   inputSchema: {
     type: 'object',
@@ -91,9 +98,9 @@ async function handle(msg) {
     case 'initialize':
       return reply(id, {
         protocolVersion: PROTOCOLS.includes(params.protocolVersion) ? params.protocolVersion : PROTOCOLS[1],
-        capabilities: { tools: {}, prompts: {} },
+        capabilities: { tools: {}, prompts: {}, resources: {} },
         serverInfo: { name: 'bananarama', title: 'Bananarama', version: pkg.version },
-        instructions: 'Use the "image" tool whenever the user asks for a picture or types /image <description>. Show the saved path.'
+        instructions: 'Use the "image" tool whenever the user asks for a picture or types /image <description>. The image is shown to the user with the tool result; reply with the saved path.'
       });
     case 'ping': return reply(id, {});
     case 'tools/list': return reply(id, { tools: [TOOL] });
@@ -108,7 +115,11 @@ async function handle(msg) {
       if (params.name !== 'image') return fail(id, -32602, `unknown prompt: ${params.name}`);
       return reply(id, { description: PROMPT.description, messages: [{ role: 'user', content: { type: 'text',
         text: `Use the bananarama "image" tool to generate this image, mapping any aspect ratio, size (1K/2K/4K) or model (pro/lite) I mention to the tool's options, then show me the saved path:\n\n${(params.arguments || {}).description || ''}` } }] });
-    case 'resources/list': return reply(id, { resources: [] });
+    case 'resources/list': return reply(id, { resources: [{ uri: UI_URI, name: 'image-viewer', title: 'Bananarama image', mimeType: UI_MIME }] });
+    case 'resources/templates/list': return reply(id, { resourceTemplates: [] });
+    case 'resources/read':
+      if (params.uri !== UI_URI) return fail(id, -32002, `resource not found: ${params.uri}`);
+      return reply(id, { contents: [{ uri: UI_URI, mimeType: UI_MIME, text: fs.readFileSync(UI_FILE, 'utf8') }] });
     default: return fail(id, -32601, `method not found: ${method}`);
   }
 }
@@ -132,4 +143,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { handle, preview, TOOL, PROMPT, CHECK_PROMPT };
+module.exports = { handle, preview, TOOL, PROMPT, CHECK_PROMPT, UI_URI };

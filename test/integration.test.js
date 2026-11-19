@@ -133,6 +133,17 @@ test('integration', async t => {
 
       const tools = await rpc('tools/list', {});
       assert.deepEqual(tools.result.tools.map(x => x.name), ['image']);
+      assert.ok(init.result.capabilities.resources, 'advertises resources for the image viewer');
+      const uiUri = tools.result.tools[0]._meta.ui.resourceUri;
+      assert.equal(uiUri, 'ui://bananarama/image.html');
+      const listed = await rpc('resources/list', {});
+      assert.deepEqual(listed.result.resources.map(r => r.uri), [uiUri]);
+      const page = await rpc('resources/read', { uri: uiUri });
+      assert.equal(page.result.contents[0].mimeType, 'text/html;profile=mcp-app');
+      assert.match(page.result.contents[0].text, /ui\/initialize/);
+      assert.match(page.result.contents[0].text, /ui\/notifications\/tool-result/);
+      const missing = await rpc('resources/read', { uri: 'ui://nope' });
+      assert.ok(missing.error);
 
       const call = await rpc('tools/call', { name: 'image', arguments: { description: 'mcp banana', aspectRatio: '9:16' } });
       assert.ok(!call.result.isError, JSON.stringify(call.result));
