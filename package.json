@@ -1,6 +1,6 @@
 {
   "name": "bananarama",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Type /image in Claude and get a Gemini Nano Banana PNG in DownloadsNano. Windows tray app + local middleware + MCP server.",
   "license": "MIT",
   "private": true,
