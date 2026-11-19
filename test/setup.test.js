@@ -91,7 +91,7 @@ test('shipped skill templates only use known placeholders', () => {
   for (const name of ['image', 'bananarama']) {
     const t = fs.readFileSync(path.join(__dirname, '..', 'skills', name, 'SKILL.md'), 'utf8');
     for (const [, k] of t.matchAll(/\{\{(\w+)\}\}/g)) assert.ok(known.includes(k), `${name}: unknown {{${k}}}`);
-    assert.match(t, /^---\nname: /);
+    assert.match(t, /^---\r?\nname: /);
   }
 });
 
