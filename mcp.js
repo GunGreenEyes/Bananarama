@@ -40,6 +40,13 @@ const PROMPT = {
   arguments: [{ name: 'description', description: 'What to draw (you can add 16:9, 4K, pro, ...)', required: true }]
 };
 
+const CHECK_PROMPT = {
+  name: 'bananarama',
+  title: 'Bananarama (self-check)',
+  description: 'Check that BananaInterop works end to end and make a test image',
+  arguments: []
+};
+
 const write = msg => process.stdout.write(JSON.stringify(msg) + '\n');
 const reply = (id, result) => write({ jsonrpc: '2.0', id, result });
 const fail = (id, code, message) => write({ jsonrpc: '2.0', id, error: { code, message } });
@@ -93,8 +100,11 @@ async function handle(msg) {
     case 'tools/call':
       if (params.name !== 'image') return fail(id, -32602, `unknown tool: ${params.name}`);
       return reply(id, await callImage(params.arguments, id, params._meta && params._meta.progressToken));
-    case 'prompts/list': return reply(id, { prompts: [PROMPT] });
+    case 'prompts/list': return reply(id, { prompts: [PROMPT, CHECK_PROMPT] });
     case 'prompts/get':
+      if (params.name === 'bananarama') return reply(id, { description: CHECK_PROMPT.description, messages: [{ role: 'user', content: { type: 'text',
+        text: 'Bananarama check: confirm the banana-interop "image" tool is available to you, then call it with description "a banana doing a victory dance, confetti, cartoon". ' +
+          'Report ✅/❌ for: tool available, image generated, PNG saved in Downloads\\Nano (give the path). End with "🍌 Bananarama: all good" or what failed and the error text.' } }] });
       if (params.name !== 'image') return fail(id, -32602, `unknown prompt: ${params.name}`);
       return reply(id, { description: PROMPT.description, messages: [{ role: 'user', content: { type: 'text',
         text: `Use the banana-interop "image" tool to generate this image, mapping any aspect ratio, size (1K/2K/4K) or model (pro/lite) I mention to the tool's options, then show me the saved path:\n\n${(params.arguments || {}).description || ''}` } }] });
@@ -122,4 +132,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { handle, preview, TOOL, PROMPT };
+module.exports = { handle, preview, TOOL, PROMPT, CHECK_PROMPT };

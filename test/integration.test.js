@@ -147,9 +147,11 @@ test('integration', async t => {
       assert.equal(bad.result.isError, true);
 
       const prompts = await rpc('prompts/list', {});
-      assert.equal(prompts.result.prompts[0].name, 'image');
+      assert.deepEqual(prompts.result.prompts.map(x => x.name), ['image', 'bananarama']);
       const p = await rpc('prompts/get', { name: 'image', arguments: { description: 'a fox' } });
       assert.match(p.result.messages[0].content.text, /a fox/);
+      const check = await rpc('prompts/get', { name: 'bananarama', arguments: {} });
+      assert.match(check.result.messages[0].content.text, /Bananarama/);
 
       const unknown = await rpc('nope', {});
       assert.equal(unknown.error.code, -32601);

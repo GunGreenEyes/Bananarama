@@ -117,6 +117,14 @@ The middleware only listens on `127.0.0.1`, and logs to `server.log` when starte
   chat clients cap inline images around 1 MB).
 - **prompt `image`** — one `description` argument; appears as a slash command where the client lists MCP prompts.
 
+## Self-check: `/bananarama`
+
+Type **`/bananarama`** to check the whole pipeline: middleware, settings, Gemini key, MCP registration, and a test
+image in `Downloads\Nano`. Add `full` to also run the test suite.
+
+- Claude Code: copy [`skill/bananarama.SKILL.md`](skill/bananarama.SKILL.md) to `~\.claude\skills\bananarama\SKILL.md`.
+- Chat / Cowork: pick the **bananarama** prompt from the banana-interop MCP server.
+
 ## Tests
 
 ```powershell
