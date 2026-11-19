@@ -11,7 +11,7 @@
     "start": "node src/server.js",
     "mcp": "node src/mcp.js",
     "setup": "node src/setup.js install",
-    "test": "node --test test/",
+    "test": "node --test test/unit.test.js test/integration.test.js test/setup.test.js",
     "test:tray": "powershell -NoProfile -ExecutionPolicy Bypass -File tray/build.ps1 -Test",
     "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1",
     "release": "node scripts/release.js"
