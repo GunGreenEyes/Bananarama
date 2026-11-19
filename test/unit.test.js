@@ -5,45 +5,45 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const settingsLib = require('../lib/settings');
-const { resolveDownloads } = require('../lib/downloads');
-const { outPath, outputDir, resolveModel, isPng, loadImages } = require('../lib/client');
-const { parseArgs } = require('../image');
-const { sseEvents } = require('../server');
+const settingsLib = require('../src/lib/settings');
+const { resolveDownloads } = require('../src/lib/downloads');
+const { outPath, outputDir, resolveModel, isPng, loadImages } = require('../src/lib/client');
+const { parseArgs } = require('../src/cli');
+const { sseEvents } = require('../src/server');
 const { PNG_B64 } = require('./helpers');
 
 function tmp() { return fs.mkdtempSync(path.join(os.tmpdir(), 'banana-unit-')); }
 
 test('settings: creates file with defaults when missing', () => {
   const dir = tmp(); const f = path.join(dir, 'settings.json');
-  process.env.BANANA_SETTINGS = f;
+  process.env.BANANARAMA_SETTINGS = f;
   try {
     const s = settingsLib.load();
     assert.ok(fs.existsSync(f));
     assert.equal(s.outputSubfolder, 'Nano');
     assert.equal(s.port, 7861);
-  } finally { delete process.env.BANANA_SETTINGS; fs.rmSync(dir, { recursive: true, force: true }); }
+  } finally { delete process.env.BANANARAMA_SETTINGS; fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 test('settings: user values override defaults, missing keys filled, BOM tolerated', () => {
   const dir = tmp(); const f = path.join(dir, 'settings.json');
   fs.writeFileSync(f, '\uFEFF' + JSON.stringify({ model: 'gemini-3-pro-image', port: 9999 }));
-  process.env.BANANA_SETTINGS = f;
+  process.env.BANANARAMA_SETTINGS = f;
   try {
     const s = settingsLib.load();
     assert.equal(s.model, 'gemini-3-pro-image');
     assert.equal(s.port, 9999);
     assert.equal(s.imageSize, '1K');
-  } finally { delete process.env.BANANA_SETTINGS; fs.rmSync(dir, { recursive: true, force: true }); }
+  } finally { delete process.env.BANANARAMA_SETTINGS; fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 test('settings: falls back to GEMINI_API_KEY env', () => {
   const dir = tmp(); const f = path.join(dir, 'settings.json');
   fs.writeFileSync(f, JSON.stringify({ apiKey: '' }));
-  process.env.BANANA_SETTINGS = f; const old = process.env.GEMINI_API_KEY; process.env.GEMINI_API_KEY = 'from-env';
+  process.env.BANANARAMA_SETTINGS = f; const old = process.env.GEMINI_API_KEY; process.env.GEMINI_API_KEY = 'from-env';
   try { assert.equal(settingsLib.load().apiKey, 'from-env'); }
   finally {
-    delete process.env.BANANA_SETTINGS;
+    delete process.env.BANANARAMA_SETTINGS;
     if (old === undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY = old;
     fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -52,9 +52,9 @@ test('settings: falls back to GEMINI_API_KEY env', () => {
 test('settings: invalid JSON gives a clear error', () => {
   const dir = tmp(); const f = path.join(dir, 'settings.json');
   fs.writeFileSync(f, '{ nope');
-  process.env.BANANA_SETTINGS = f;
+  process.env.BANANARAMA_SETTINGS = f;
   try { assert.throws(() => settingsLib.load(), /not valid JSON/); }
-  finally { delete process.env.BANANA_SETTINGS; fs.rmSync(dir, { recursive: true, force: true }); }
+  finally { delete process.env.BANANARAMA_SETTINGS; fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 test('downloads: resolves an existing folder', () => {
@@ -115,4 +115,13 @@ test('sseEvents: parses LF and CRLF events split across chunks', async () => {
   const out = [];
   for await (const ev of sseEvents(stream)) out.push(ev);
   assert.deepEqual(out, [{ a: 1 }, { b: 2 }, { c: 3 }]);
+});
+
+test('release: whole-number versions', () => {
+  const { nextVersion } = require('../scripts/release');
+  assert.equal(nextVersion(2, ['']), 2, 'first release of v2');
+  assert.equal(nextVersion(2, ['v2']), 3);
+  assert.equal(nextVersion(3, ['v2', 'v3', 'v10']), 11);
+  assert.equal(nextVersion(2, ['v2.1', 'nightly']), 2, 'non-whole tags ignored');
+  assert.equal(nextVersion(2, ['v5']), 6, 'never goes backwards');
 });

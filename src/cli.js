@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 'use strict';
-// BananaInterop CLI: send a description through the middleware to Gemini and
+// Bananarama CLI: send a description through the middleware to Gemini and
 // save the result as a PNG in <Downloads>\Nano.
 //
-//   node image.js [--model M] [--ar 16:9] [--size 2K] [--image ref.jpg]... [--out DIR] <description...>
+//   node cli.js [--model M] [--ar 16:9] [--size 2K] [--image ref.jpg]... [--out DIR] <description...>
 //
 // Prints "SAVED: <path>" on success (exit 0); errors go to stderr (exit 1).
-const { generate } = require('./lib/client');
+const { generate, outputDir } = require('./lib/client');
+const settingsLib = require('./lib/settings');
+const pkg = require('../package.json');
 
 function parseArgs(argv) {
   const o = { images: [], words: [] };
@@ -19,6 +21,8 @@ function parseArgs(argv) {
     else if (a === '--image' || a === '-i') o.images.push(next());
     else if (a === '--out') o.out = next();
     else if (a === '--help' || a === '-h') o.help = true;
+    else if (a === '--where') o.where = true;
+    else if (a === '--version' || a === '-v') o.version = true;
     else o.words.push(a);
   }
   o.prompt = o.words.join(' ').trim();
@@ -27,8 +31,10 @@ function parseArgs(argv) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  if (args.version) return console.log(`Bananarama v${pkg.version.split('.')[0]}`);
+  if (args.where) return console.log(outputDir(settingsLib.load()));
   if (args.help || !args.prompt) {
-    console.log('usage: node image.js [--model flash|pro|lite|<id>] [--ar 16:9] [--size 1K|2K|4K] [--image ref.png]... [--out DIR] <description>');
+    console.log('usage: bananarama [--where] [--version] [--model flash|pro|lite|<id>] [--ar 16:9] [--size 1K|2K|4K] [--image ref.png]... [--out DIR] <description>');
     process.exit(args.help ? 0 : 1);
   }
   let lastPct = -1;

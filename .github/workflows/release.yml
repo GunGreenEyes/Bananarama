@@ -1,0 +1,36 @@
+name: release
+# Push a whole-number tag (v2, v3, ...) - usually via `npm run release` - to build and publish the installer.
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+      - name: Check tag matches package.json
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'
+          if ($tag -notmatch '^v\d+$') { throw "tags must be whole numbers like v2, got $tag" }
+          $major = (Get-Content package.json -Raw | ConvertFrom-Json).version.Split('.')[0]
+          if ($tag -ne "v$major") { throw "tag $tag does not match package.json version $major" }
+      - run: npm test
+      - name: Install Inno Setup
+        shell: pwsh
+        run: if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+      - name: Build installer
+        shell: pwsh
+        run: ./scripts/build.ps1 -Test
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          gh release create $tag "dist/Bananarama-Setup-$tag.exe" --title "Bananarama $tag" --generate-notes --latest

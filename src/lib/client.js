@@ -38,16 +38,17 @@ function request(s, method, urlPath, body, onLine) {
   });
 }
 
-const healthy = s => request(s, 'GET', '/health').then(r => r.status === 200 && r.body.includes('BananaInterop'), () => false);
+const healthy = s => request(s, 'GET', '/health').then(r => r.status === 200 && r.body.includes('Bananarama'), () => false);
 
 async function ensureServer(s) {
   if (await healthy(s)) return;
-  if (!s.autoStartServer) throw new Error(`middleware not running on ${s.host}:${s.port} (start it with: node server.js)`);
-  const log = fs.openSync(path.join(settingsLib.ROOT, 'server.log'), 'a');
-  spawn(process.execPath, [path.join(settingsLib.ROOT, 'server.js')],
+  if (!s.autoStartServer) throw new Error(`middleware not running on ${s.host}:${s.port} (start Bananarama from the Start menu)`);
+  fs.mkdirSync(path.dirname(settingsLib.logPath()), { recursive: true });
+  const log = fs.openSync(settingsLib.logPath(), 'a');
+  spawn(process.execPath, [path.join(__dirname, '..', 'server.js')],
     { detached: true, stdio: ['ignore', log, log], windowsHide: true, env: process.env }).unref();
   for (let i = 0; i < 40; i++) { await new Promise(r => setTimeout(r, 250)); if (await healthy(s)) return; }
-  throw new Error('middleware failed to start; see server.log');
+  throw new Error(`middleware failed to start; see ${settingsLib.logPath()}`);
 }
 
 function isPng(buf) { return buf.length >= 8 && buf.subarray(0, 8).equals(PNG_SIG); }

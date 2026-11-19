@@ -68,9 +68,9 @@ async function setup(overrides = {}) {
     apiBase: `http://127.0.0.1:${gemPort}/v1beta`, ...overrides
   };
   fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
-  process.env.BANANA_SETTINGS = settingsFile;
+  process.env.BANANARAMA_SETTINGS = settingsFile;
 
-  const { createServer } = require('../server');
+  const { createServer } = require('../src/server');
   const mw = createServer();
   await new Promise(r => mw.listen(port, '127.0.0.1', r));
 
@@ -80,7 +80,7 @@ async function setup(overrides = {}) {
     async close() {
       await new Promise(r => mw.close(r));
       await new Promise(r => gem.server.close(r));
-      delete process.env.BANANA_SETTINGS;
+      delete process.env.BANANARAMA_SETTINGS;
       fs.rmSync(dir, { recursive: true, force: true });
     }
   };

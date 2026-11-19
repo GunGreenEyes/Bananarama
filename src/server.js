@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-// BananaInterop middleware: a tiny local HTTP server that relays prompts to the
+// Bananarama middleware: a tiny local HTTP server that relays prompts to the
 // Gemini "Nano Banana" image models and streams the result back as NDJSON.
 //
 //   GET  /health   -> {"ok":true,...}
@@ -15,6 +15,7 @@
 //                       {"type":"error","message":...}
 const http = require('http');
 const settingsLib = require('./lib/settings');
+const pkg = require('../package.json');
 
 const CHUNK = 64 * 1024; // base64 chars per image_chunk event
 const MAX_BODY = 60 * 1024 * 1024;
@@ -131,11 +132,23 @@ async function handleImagine(req, res) {
   }
 }
 
+// Only local, non-browser callers: a web page could otherwise POST to
+// 127.0.0.1 (CSRF) or reach it through DNS rebinding and spend your credits.
+function allowed(req) {
+  if (req.headers.origin) return false;
+  const host = String(req.headers.host || '').toLowerCase().replace(/:\d+$/, '');
+  return host === '127.0.0.1' || host === 'localhost' || host === '[::1]';
+}
+
 function createServer() {
   return http.createServer((req, res) => {
+    if (!allowed(req)) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'forbidden' }));
+    }
     if (req.method === 'GET' && req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ ok: true, name: 'BananaInterop', pid: process.pid }));
+      return res.end(JSON.stringify({ ok: true, name: 'Bananarama', version: pkg.version, pid: process.pid }));
     }
     if (req.method === 'POST' && req.url === '/imagine') {
       return handleImagine(req, res).catch(e => { try { res.end(JSON.stringify({ type: 'error', message: e.message }) + '\n'); } catch { /* gone */ } });
@@ -148,10 +161,10 @@ function createServer() {
 function start() {
   const s = settingsLib.load();
   const server = createServer();
-  server.listen(s.port, s.host, () => console.log(`BananaInterop listening on http://${s.host}:${s.port}`));
+  server.listen(s.port, s.host, () => console.log(`Bananarama listening on http://${s.host}:${s.port}`));
   server.on('error', e => { console.error(e.message); process.exit(1); });
   return server;
 }
 
 if (require.main === module) start();
-module.exports = { start, createServer, sseEvents };
+module.exports = { start, createServer, sseEvents, allowed };

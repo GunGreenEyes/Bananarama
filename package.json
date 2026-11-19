@@ -1,14 +1,28 @@
 {
-  "name": "banana-interop",
-  "version": "1.0.0",
-  "description": "Local middleware between Claude and Google Gemini Nano Banana image models; saves PNGs to Downloads\\Nano.",
+  "name": "bananarama",
+  "version": "2.0.0",
+  "description": "Type /image in Claude and get a Gemini Nano Banana PNG in DownloadsNano. Windows tray app + local middleware + MCP server.",
   "license": "MIT",
   "private": true,
-  "bin": { "banana-image": "image.js" },
-  "scripts": {
-    "start": "node server.js",
-    "mcp": "node mcp.js",
-    "test": "node --test test/unit.test.js test/integration.test.js"
+  "bin": {
+    "bananarama": "src/cli.js"
   },
-  "engines": { "node": ">=18" }
+  "scripts": {
+    "start": "node src/server.js",
+    "mcp": "node src/mcp.js",
+    "setup": "node src/setup.js install",
+    "test": "node --test test/",
+    "test:tray": "powershell -NoProfile -ExecutionPolicy Bypass -File tray/build.ps1 -Test",
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1",
+    "release": "node scripts/release.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://gungreeneyes.github.io/Bananarama/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GunGreenEyes/Bananarama.git"
+  },
+  "main": "src/lib/client.js"
 }

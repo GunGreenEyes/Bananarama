@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-// BananaInterop MCP server (stdio, JSON-RPC 2.0, newline-delimited).
+// Bananarama MCP server (stdio, JSON-RPC 2.0, newline-delimited).
 // Lets Claude Desktop Chat and Cowork call the middleware: tool "image" and
 // prompt "image" (shows up as /image where the client lists MCP prompts).
 // stdout carries protocol messages only; logs go to stderr.
@@ -9,7 +9,7 @@ const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { generate, MODEL_ALIASES } = require('./lib/client');
-const pkg = require('./package.json');
+const pkg = require('../package.json');
 
 const PROTOCOLS = ['2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05'];
 const INLINE_LIMIT = 900 * 1024; // larger PNGs are returned by path only
@@ -17,7 +17,7 @@ const INLINE_LIMIT = 900 * 1024; // larger PNGs are returned by path only
 const TOOL = {
   name: 'image',
   title: 'Generate image (Nano Banana)',
-  description: 'Generate an image from a text description with Google Gemini Nano Banana via the local BananaInterop middleware. ' +
+  description: 'Generate an image from a text description with Google Gemini Nano Banana via the local Bananarama middleware. ' +
     'Saves a PNG to the user\'s Downloads\\Nano folder and returns the saved path (and the image when small enough). ' +
     'Pass referenceImages (local file paths) to edit an image or use it as a reference.',
   inputSchema: {
@@ -43,7 +43,7 @@ const PROMPT = {
 const CHECK_PROMPT = {
   name: 'bananarama',
   title: 'Bananarama (self-check)',
-  description: 'Check that BananaInterop works end to end and make a test image',
+  description: 'Check that Bananarama works end to end and make a test image',
   arguments: []
 };
 
@@ -92,7 +92,7 @@ async function handle(msg) {
       return reply(id, {
         protocolVersion: PROTOCOLS.includes(params.protocolVersion) ? params.protocolVersion : PROTOCOLS[1],
         capabilities: { tools: {}, prompts: {} },
-        serverInfo: { name: 'banana-interop', title: 'BananaInterop', version: pkg.version },
+        serverInfo: { name: 'bananarama', title: 'Bananarama', version: pkg.version },
         instructions: 'Use the "image" tool whenever the user asks for a picture or types /image <description>. Show the saved path.'
       });
     case 'ping': return reply(id, {});
@@ -103,11 +103,11 @@ async function handle(msg) {
     case 'prompts/list': return reply(id, { prompts: [PROMPT, CHECK_PROMPT] });
     case 'prompts/get':
       if (params.name === 'bananarama') return reply(id, { description: CHECK_PROMPT.description, messages: [{ role: 'user', content: { type: 'text',
-        text: 'Bananarama check: confirm the banana-interop "image" tool is available to you, then call it with description "a banana doing a victory dance, confetti, cartoon". ' +
+        text: 'Bananarama check: confirm the bananarama "image" tool is available to you, then call it with description "a banana doing a victory dance, confetti, cartoon". ' +
           'Report ✅/❌ for: tool available, image generated, PNG saved in Downloads\\Nano (give the path). End with "🍌 Bananarama: all good" or what failed and the error text.' } }] });
       if (params.name !== 'image') return fail(id, -32602, `unknown prompt: ${params.name}`);
       return reply(id, { description: PROMPT.description, messages: [{ role: 'user', content: { type: 'text',
-        text: `Use the banana-interop "image" tool to generate this image, mapping any aspect ratio, size (1K/2K/4K) or model (pro/lite) I mention to the tool's options, then show me the saved path:\n\n${(params.arguments || {}).description || ''}` } }] });
+        text: `Use the bananarama "image" tool to generate this image, mapping any aspect ratio, size (1K/2K/4K) or model (pro/lite) I mention to the tool's options, then show me the saved path:\n\n${(params.arguments || {}).description || ''}` } }] });
     case 'resources/list': return reply(id, { resources: [] });
     default: return fail(id, -32601, `method not found: ${method}`);
   }
@@ -128,7 +128,7 @@ function main() {
     }
   });
   process.stdin.on('end', () => process.exit(0));
-  process.stderr.write('banana-interop MCP server ready\n');
+  process.stderr.write('bananarama MCP server ready\n');
 }
 
 if (require.main === module) main();

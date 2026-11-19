@@ -1,4 +1,7 @@
 settings.json
 server.log
 node_modules/
-*.png
+/*.png
+dist/
+build/
+obj/

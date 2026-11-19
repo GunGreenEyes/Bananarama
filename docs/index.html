@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BananaInterop</title>
-<meta name="description" content="Type /image in Claude, get a Gemini Nano Banana PNG in Downloads\Nano. Local, dependency-free middleware.">
+<title>Bananarama</title>
+<link rel="icon" href="banana.png">
+<meta name="description" content="Bananarama: type /image in Claude, get a Gemini Nano Banana PNG in Downloads\Nano. A Windows tray app with a one-click installer.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -85,17 +86,35 @@
     nav a:not(.gh) { display: none; }
   }
   @media (max-width: 480px) { .flow { grid-template-columns: 1fr; } .lede { font-size: 17px; } }
+  .brand img { width: 26px; height: 26px; display: block; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 22px; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; background: var(--accent); color: var(--accent-ink); font-weight: 600;
+         text-decoration: none; padding: 12px 20px; border-radius: 12px; box-shadow: var(--shadow); }
+  .btn:hover { filter: brightness(1.05); }
+  .btn small { font-weight: 500; opacity: .75; }
+  .meta { color: var(--muted); font-size: 14px; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+  .split > * { min-width: 0; }
+  .menu { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 6px; max-width: 320px; font-size: 14.5px; }
+  .menu div { padding: 7px 12px; border-radius: 7px; }
+  .menu .dim { color: var(--muted); }
+  .menu .bold { font-weight: 600; }
+  .menu .sep { height: 1px; padding: 0; margin: 5px 4px; background: var(--line); }
+  .menu .chk::before { content: "\2713"; margin-right: 8px; color: var(--green); }
+  .shot { width: 100%; max-width: 525px; height: auto; display: block; border-radius: 10px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand"><i aria-hidden="true"></i>BananaInterop</div>
+    <div class="brand"><img src="banana.png" alt="" width="26" height="26">Bananarama</div>
     <nav>
       <a href="#how">How it works</a>
+      <a href="#tray">Tray</a>
       <a href="#install">Install</a>
       <a href="#settings">Settings</a>
-      <a class="gh" href="https://github.com/GunGreenEyes/BananaInterop">GitHub ↗</a>
+      <a class="gh" href="https://github.com/GunGreenEyes/Bananarama">GitHub ↗</a>
     </nav>
   </header>
 
@@ -103,7 +122,11 @@
     <div>
       <span class="pill">Claude × Gemini Nano Banana</span>
       <h1>Type <mark>/image</mark>.<br>Get a PNG.</h1>
-      <p class="lede">A tiny local middleware that lets Claude Chat, Cowork and Claude Code generate images with Google's Nano Banana models and drop them straight into <code>Downloads\Nano</code>.</p>
+      <p class="lede">Bananarama sits in your Windows tray and lets Claude Chat, Cowork and Claude Code make images with Google's Nano Banana models, saved straight into <code>Downloads\Nano</code>.</p>
+      <div class="actions">
+        <a class="btn" href="https://github.com/GunGreenEyes/Bananarama/releases/latest">Download for Windows <small>latest release</small></a>
+        <span class="meta">Windows 10/11 · free · MIT</span>
+      </div>
       <div class="cmd" aria-label="example command"><b>/image</b><span>a neon green banana spaceship docking at a station, 16:9</span></div>
     </div>
     <figure>
@@ -114,22 +137,51 @@
 
   <section id="how">
     <h2>How it works</h2>
-    <p class="sub">Claude never talks to Google directly. It talks to the middleware on your PC, which holds your key.</p>
+    <p class="sub">Claude never talks to Google directly. It talks to Bananarama on your PC, which holds your key.</p>
     <div class="flow">
-      <div class="step"><h3>You ask</h3><p><code>/image</code> in Claude Code, or the <code>image</code> MCP tool in Chat and Cowork.</p></div>
-      <div class="step"><h3>Middleware</h3><p><code>server.js</code> on <code>127.0.0.1:7861</code> forwards the prompt to Gemini's streaming API.</p></div>
-      <div class="step"><h3>Stream back</h3><p>The image streams back as NDJSON chunks and is reassembled, converted to PNG if needed.</p></div>
-      <div class="step"><h3>Saved</h3><p>Written to your <em>real</em> Downloads folder (registry lookup), in <code>Nano\</code>.</p></div>
+      <div class="step"><h3>You ask</h3><p><code>/image</code> in Claude Code, or the <code>image</code> tool in Chat and Cowork.</p></div>
+      <div class="step"><h3>Middleware</h3><p>The tray app keeps a small local server on <code>127.0.0.1:7861</code> that forwards the prompt to Gemini.</p></div>
+      <div class="step"><h3>Stream back</h3><p>The image streams back in chunks, is reassembled and converted to PNG if needed.</p></div>
+      <div class="step"><h3>Saved</h3><p>Written to your <em>real</em> Downloads folder, even if you moved it, in <code>Nano\</code>.</p></div>
+    </div>
+  </section>
+
+  <section id="tray">
+    <h2>Lives in your tray</h2>
+    <p class="sub">Starts with Windows, keeps the middleware running, and restarts it if it ever falls over.</p>
+    <div class="split">
+      <div>
+        <div class="menu" role="img" aria-label="Bananarama tray menu">
+          <div class="dim">Bananarama v2</div>
+          <div class="dim">Running on 127.0.0.1:7861</div>
+          <div class="sep"></div>
+          <div>New image…</div>
+          <div>Make a test image</div>
+          <div>Open images folder</div>
+          <div class="sep"></div>
+          <div class="bold">Settings…</div>
+          <div class="chk">Start with Windows</div>
+          <div>Connect to Claude</div>
+          <div class="sep"></div>
+          <div>Restart middleware</div>
+          <div>Open log</div>
+          <div>Website</div>
+          <div class="sep"></div>
+          <div>Quit</div>
+        </div>
+        <p class="meta" style="margin-top:14px">Right-click the banana. Double-click opens Settings. The banana turns grey while the middleware is starting or stopped.</p>
+      </div>
+      <img class="shot" src="settings.png" alt="The Bananarama Settings window: Gemini API key with a Test key button, model, aspect ratio, image size, save folder, subfolder, file name prefix, open after saving, start with Windows, and port" width="525" height="481" loading="lazy">
     </div>
   </section>
 
   <section>
     <h2>Works where you do</h2>
-    <p class="sub">One middleware, three front doors.</p>
+    <p class="sub">One middleware, four front doors.</p>
     <div class="grid3">
-      <div class="card"><h3>Claude Code</h3><p>A user skill adds <code>/image</code> to the CLI and the desktop Code tab.</p><pre><code>/image a fox in a library, 2K</code></pre></div>
-      <div class="card"><h3>Chat &amp; Cowork</h3><p>An MCP server exposes an <code>image</code> tool and prompt. Ask for a picture and it shows up inline.</p><pre><code>"draw me a banana balloon"</code></pre></div>
-      <div class="card"><h3>Command line</h3><p>Script it, batch it, pipe the saved path anywhere.</p><pre><code>node image.js --ar 9:16 "poster"</code></pre></div>
+      <div class="card"><h3>Claude Code</h3><p>The installer adds <code>/image</code> and <code>/bananarama</code> (a self-check) to the CLI and the desktop Code tab.</p><pre><code>/image a fox in a library, 2K</code></pre></div>
+      <div class="card"><h3>Chat &amp; Cowork</h3><p>An MCP server exposes an <code>image</code> tool. Ask for a picture and it shows up inline.</p><pre><code>"draw me a banana balloon"</code></pre></div>
+      <div class="card"><h3>Tray &amp; command line</h3><p><b>New image…</b> from the tray, or script it from a terminal.</p><pre><code>node cli.js --ar 9:16 "poster"</code></pre></div>
     </div>
   </section>
 
@@ -145,26 +197,18 @@
 
   <section id="install">
     <h2>Install</h2>
-    <p class="sub">Windows, Node 18+, no npm packages.</p>
+    <p class="sub">One installer. No admin rights and no Node.js to install; everything it needs is inside.</p>
     <ol class="install">
-      <li><p>Clone it.</p><pre><code>git clone https://github.com/GunGreenEyes/BananaInterop.git F:\Projects\GunGreenEyes\BananaInterop</code></pre></li>
-      <li><p>Put a Gemini API key from <a href="https://aistudio.google.com/apikey">AI Studio</a> in <code>settings.json</code> (created on first run). Image models need billing on the key's project.</p></li>
-      <li><p>For Chat and Cowork, register the MCP server in <code>%APPDATA%\Claude\claude_desktop_config.json</code>, then quit Claude from the tray and reopen it.</p>
-<pre><code>{
-  "mcpServers": {
-    "banana-interop": {
-      "command": "C:\\Program Files\\nodejs\\node.exe",
-      "args": ["F:\\Projects\\GunGreenEyes\\BananaInterop\\mcp.js"]
-    }
-  }
-}</code></pre></li>
-      <li><p>For Claude Code, copy <code>skill\SKILL.md</code> to <code>~\.claude\skills\image\SKILL.md</code>.</p></li>
+      <li><p>Download <code>Bananarama-Setup-v&lt;N&gt;.exe</code> from the <a href="https://github.com/GunGreenEyes/Bananarama/releases/latest">latest release</a> and run it. Keep <b>Start with Windows</b> and <b>Connect to Claude</b> ticked.</p></li>
+      <li><p>Paste a Gemini API key from <a href="https://aistudio.google.com/apikey">AI Studio</a> into the Settings window that opens, and press <b>Test key</b>. Image models need billing on the key's Google Cloud project.</p></li>
+      <li><p>Fully quit Claude Desktop (tray → Quit) and reopen it. Then type <code>/image</code> and a description in Chat, Cowork or Claude Code.</p></li>
     </ol>
+    <p class="meta" style="margin-top:22px">Updating: run the newer installer over the old one. Uninstalling (Settings → Apps) removes Bananarama from Claude and from startup, and keeps your settings and images.</p>
   </section>
 
   <section id="settings">
     <h2>Settings</h2>
-    <p class="sub"><code>settings.json</code> is re-read on every request, so edits apply to the next image.</p>
+    <p class="sub">Tray → Settings, or edit <code>%APPDATA%\Bananarama\settings.json</code>. Changes apply to the next image.</p>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Key</th><th>Default</th><th>Notes</th></tr></thead>
@@ -174,15 +218,14 @@
           <tr><td><code>imageSize</code></td><td><code>1K</code></td><td>1K, 2K or 4K</td></tr>
           <tr><td><code>outputDir</code></td><td><em>Downloads</em></td><td>Empty means your real Downloads folder.</td></tr>
           <tr><td><code>outputSubfolder</code></td><td><code>Nano</code></td><td>Empty saves directly into <code>outputDir</code>.</td></tr>
-          <tr><td><code>port</code></td><td><code>7861</code></td><td>Middleware listens on 127.0.0.1 only.</td></tr>
-          <tr><td><code>autoStartServer</code></td><td><code>true</code></td><td>Clients start the middleware if it isn't running.</td></tr>
+          <tr><td><code>port</code></td><td><code>7861</code></td><td>Local only (127.0.0.1); web pages can't call it.</td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
   <footer>
-    BananaInterop · MIT · <a href="https://github.com/GunGreenEyes/BananaInterop">github.com/GunGreenEyes/BananaInterop</a> · Not affiliated with Google or Anthropic.
+    Bananarama · MIT · <a href="https://github.com/GunGreenEyes/Bananarama">github.com/GunGreenEyes/Bananarama</a> · Not affiliated with Google or Anthropic.
   </footer>
 </div>
 </body>

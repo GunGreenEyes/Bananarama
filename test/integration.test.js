@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, execFileSync } = require('child_process');
 const { setup, sseImage, httpError, PNG_B64 } = require('./helpers');
-const { generate } = require('../lib/client');
+const { generate } = require('../src/lib/client');
 
 test('integration', async t => {
   const ctx = await setup();
@@ -94,7 +94,7 @@ test('integration', async t => {
     const big = path.join(ctx.dir, 'big.png');
     execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
       `Add-Type -AssemblyName System.Drawing; $b=New-Object System.Drawing.Bitmap 2048,1152; $g=[System.Drawing.Graphics]::FromImage($b); $g.Clear([System.Drawing.Color]::Gold); $g.Dispose(); $b.Save('${big}',[System.Drawing.Imaging.ImageFormat]::Png); $b.Dispose()`]);
-    const { preview } = require('../mcp');
+    const { preview } = require('../src/mcp');
     const p = preview(big);
     assert.ok(p, 'preview returned null');
     assert.equal(p.mimeType, 'image/jpeg');
@@ -105,7 +105,7 @@ test('integration', async t => {
 
   await t.test('CLI prints SAVED path', async () => {
     ctx.gem.behaviour = sseImage();
-    const out = await run(process.execPath, [path.join(__dirname, '..', 'image.js'), '--ar', '3:2', 'cli', 'test']);
+    const out = await run(process.execPath, [path.join(__dirname, '..', 'src', 'cli.js'), '--ar', '3:2', 'cli', 'test']);
     assert.equal(out.code, 0, out.stderr);
     const m = out.stdout.match(/^SAVED: (.+)$/m);
     assert.ok(m && fs.existsSync(m[1].trim()));
@@ -114,7 +114,7 @@ test('integration', async t => {
 
   await t.test('MCP server: initialize, list, call, prompt', async () => {
     ctx.gem.behaviour = sseImage();
-    const mcp = spawn(process.execPath, [path.join(__dirname, '..', 'mcp.js')], { env: process.env, stdio: ['pipe', 'pipe', 'pipe'] });
+    const mcp = spawn(process.execPath, [path.join(__dirname, '..', 'src', 'mcp.js')], { env: process.env, stdio: ['pipe', 'pipe', 'pipe'] });
     const pending = new Map(); let buf = '';
     mcp.stdout.on('data', c => {
       buf += c; let i;
@@ -128,7 +128,7 @@ test('integration', async t => {
     try {
       const init = await rpc('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '0' } });
       assert.equal(init.result.protocolVersion, '2025-06-18');
-      assert.equal(init.result.serverInfo.name, 'banana-interop');
+      assert.equal(init.result.serverInfo.name, 'bananarama');
       mcp.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
 
       const tools = await rpc('tools/list', {});
